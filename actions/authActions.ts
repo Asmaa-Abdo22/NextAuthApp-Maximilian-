@@ -1,12 +1,13 @@
 "use server";
 
 import { FormState } from "@/components/auth-form";
-import { createUser } from "@/lib/user";
+import { createUser, getUserByEmail } from "@/lib/user";
 import { hashUserPassword } from "@/lib/hash";
-import { redirect } from "next/navigation";
-import { createAuthSession } from "@/lib/auth";
 
-export async function signIn(
+import { createAuthSession, deleteSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
+
+export async function signUp(
   prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
@@ -43,4 +44,45 @@ export async function signIn(
     }
     throw e;
   }
+}
+
+export async function logIn(prevState: FormState, formData: FormData) {
+  const email = formData.get("email");
+  const password = formData.get("password");
+  const existingUser = await getUserByEmail(email as string);
+  if (!existingUser) {
+    return {
+      errors: {
+        email: "No user found with this email",
+      },
+    };
+  }
+  const isvalidPassword =
+    hashUserPassword(password as string) === existingUser.password;
+  if (!isvalidPassword) {
+    return {
+      errors: {
+        password: "Incorrect password",
+      },
+    };
+  }
+  await createAuthSession(existingUser.id);
+  redirect("/training");
+}
+
+export async function auth(
+  mode: string,
+  prevState: FormState,
+  formData: FormData,
+) {
+  if (mode === "signup") {
+    return await signUp(prevState, formData);
+  } else {
+    return await logIn(prevState, formData);
+  }
+}
+
+export async function logOut() {
+  await deleteSession();
+  redirect("/");
 }

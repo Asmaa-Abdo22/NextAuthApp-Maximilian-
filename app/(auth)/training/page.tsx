@@ -1,4 +1,6 @@
+import { verifyAuthSession } from "@/lib/auth";
 import { getTrainings } from "@/lib/training";
+import { redirect } from "next/navigation";
 export type Training = {
   id: number;
   title: string;
@@ -6,6 +8,10 @@ export type Training = {
   image: string;
 };
 export default async function TrainingPage() {
+  const result = await verifyAuthSession();
+  if (!result?.user) {
+    redirect("/");
+  }
   const trainingSessions: Training[] = getTrainings();
 
   return (

@@ -8,7 +8,13 @@ export type FormState = {
     password?: string;
   };
 };
-export default function AuthForm({ action }: { action: any }) {
+export default function AuthForm({
+  action,
+  currentMode,
+}: {
+  action: any;
+  currentMode?: string;
+}) {
   const [state, formAction] = useActionState<FormState, FormData>(action, {
     errors: {},
   });
@@ -32,10 +38,17 @@ export default function AuthForm({ action }: { action: any }) {
         )}
       </p>
       <p>
-        <button type="submit">Create Account</button>
+        <button type="submit">
+          {currentMode === "login" ? "Log In" : "Create Account"}
+        </button>
       </p>
       <p>
-        <Link href="/">Login with existing account.</Link>
+        {currentMode === "login" && (
+          <Link href="/?mode=signup">Create An Account</Link>
+        )}
+        {currentMode === "signup" && (
+          <Link href="/?mode=login">Log In With An Existing Account</Link>
+        )}
       </p>
     </form>
   );
